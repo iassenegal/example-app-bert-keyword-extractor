@@ -1,23 +1,34 @@
 import streamlit as st
+import requests
+from bs4 import BeautifulSoup
+import re
 import numpy as np
 from pandas import DataFrame
 from keybert import KeyBERT
-# For Flair (Keybert)
 from flair.embeddings import TransformerDocumentEmbeddings
 import seaborn as sns
-# For download buttons
 from functionforDownloadButtons import download_button
 import os
 import matplotlib.pyplot as plt
 import json
 from wordcloud import WordCloud
-import matplotlib.pyplot as plt
 
 st.set_page_config(
     page_title="BERT Keyword Extractor",
     page_icon="🎈",
 )
 
+# Function to scrape content from a URL
+def scrape_content(url):
+    try:
+        page = requests.get(url)
+        soup = BeautifulSoup(page.content, "html.parser")
+        paragraphs = soup.find_all("p")
+        content = " ".join([p.text.strip() for p in paragraphs])
+        return content
+    except Exception as e:
+        st.error(f"An error occurred: {e}")
+        return None
 
 def _max_width_():
     max_width_str = f"max-width: 1400px;"
@@ -32,131 +43,51 @@ def _max_width_():
         unsafe_allow_html=True,
     )
 
-
 _max_width_()
 
 c30, c31, c32 = st.columns([2.5, 1, 3])
 
 with c30:
-    # st.image("logo.png", width=400)
     st.title("🔑 BERT Keyword Extractor")
     st.header("")
 
-
-
 with st.expander("ℹ️ - About this app", expanded=True):
-
     st.write(
         """     
 -   The *BERT Keyword Extractor* app is an easy-to-use interface built in Streamlit for the amazing [KeyBERT](https://github.com/MaartenGr/KeyBERT) library from Maarten Grootendorst!
--   It uses a minimal keyword extraction technique that leverages multiple NLP embeddings and relies on [Transformers] (https://huggingface.co/transformers/) 🤗 to create keywords/keyphrases that are most similar to a document.
+-   It uses a minimal keyword extraction technique that leverages multiple NLP embeddings and relies on [Transformers](https://huggingface.co/transformers/) 🤗 to create keywords/keyphrases that are most similar to a document.
 	    """
     )
-
     st.markdown("")
 
-st.markdown("")
-st.markdown("## **📌 Paste document **")
+st.markdown("## **📌 Paste document or Enter URL**")
 with st.form(key="my_form"):
-
-
     ce, c1, ce, c2, c3 = st.columns([0.07, 1, 0.07, 5, 0.07])
     with c1:
-        ModelType = st.radio(
-            "Choose your model",
-            ["DistilBERT (Default)", "Flair"],
-            help="At present, you can choose between 2 models (Flair or DistilBERT) to embed your text. More to come!",
+        option = st.radio(
+            "Choose input type",
+            ["Paste Text", "Enter URL"],
+            help="Choose how you want to input the document: directly paste text or enter a URL to scrape content.",
         )
-
-        if ModelType == "Default (DistilBERT)":
-            # kw_model = KeyBERT(model=roberta)
-
-            @st.cache(allow_output_mutation=True)
-            def load_model():
-                return KeyBERT(model=roberta)
-
-            kw_model = load_model()
-
-        else:
-            @st.cache(allow_output_mutation=True)
-            def load_model():
-                return KeyBERT("distilbert-base-nli-mean-tokens")
-
-            kw_model = load_model()
-
-        top_N = st.slider(
-            "# of results",
-            min_value=1,
-            max_value=30,
-            value=10,
-            help="You can choose the number of keywords/keyphrases to display. Between 1 and 30, default number is 10.",
-        )
-        min_Ngrams = st.number_input(
-            "Minimum Ngram",
-            min_value=1,
-            max_value=4,
-            help="""The minimum value for the ngram range.
-
-*Keyphrase_ngram_range* sets the length of the resulting keywords/keyphrases.
-
-To extract keyphrases, simply set *keyphrase_ngram_range* to (1, 2) or higher depending on the number of words you would like in the resulting keyphrases.""",
-            # help="Minimum value for the keyphrase_ngram_range. keyphrase_ngram_range sets the length of the resulting keywords/keyphrases. To extract keyphrases, simply set keyphrase_ngram_range to (1, # 2) or higher depending on the number of words you would like in the resulting keyphrases.",
-        )
-
-        max_Ngrams = st.number_input(
-            "Maximum Ngram",
-            value=2,
-            min_value=1,
-            max_value=4,
-            help="""The maximum value for the keyphrase_ngram_range.
-
-*Keyphrase_ngram_range* sets the length of the resulting keywords/keyphrases.
-
-To extract keyphrases, simply set *keyphrase_ngram_range* to (1, 2) or higher depending on the number of words you would like in the resulting keyphrases.""",
-        )
-
-        StopWordsCheckbox = st.checkbox(
-            "Remove stop words",
-            help="Tick this box to remove stop words from the document (currently English only)",
-        )
-
-        use_MMR = st.checkbox(
-            "Use MMR",
-            value=True,
-            help="You can use Maximal Margin Relevance (MMR) to diversify the results. It creates keywords/keyphrases based on cosine similarity. Try high/low 'Diversity' settings below for interesting variations.",
-        )
-
-        Diversity = st.slider(
-            "Keyword diversity (MMR only)",
-            value=0.5,
-            min_value=0.0,
-            max_value=1.0,
-            step=0.1,
-            help="""The higher the setting, the more diverse the keywords.
-            
-Note that the *Keyword diversity* slider only works if the *MMR* checkbox is ticked.
-
-""",
-        )
-
-    with c2:
-        doc = st.text_area(
-            "Paste your text below (max 500 words)",
-            height=510,
-        )
-
-        MAX_WORDS = 500
-        import re
-        res = len(re.findall(r"\w+", doc))
-        if res > MAX_WORDS:
-            st.warning(
-                "⚠️ Your text contains "
-                + str(res)
-                + " words."
-                + " Only the first 500 words will be reviewed. Stay tuned as increased allowance is coming! 😊"
+        if option == "Paste Text":
+            doc = st.text_area(
+                "Paste your text below (max 500 words)",
+                height=510,
             )
+        else:
+            url = st.text_input("Enter URL to scrape content")
+            if st.button("Get content"):
+                doc = scrape_content(url)
 
-            doc = doc[:MAX_WORDS]
+                MAX_WORDS = 500
+                if doc and len(re.findall(r"\w+", doc)) > MAX_WORDS:
+                    st.warning(
+                        f"⚠️ The scraped text contains more than {MAX_WORDS} words. Only the first {MAX_WORDS} words will be reviewed."
+                    )
+                    doc = doc[:MAX_WORDS]                
+
+            else:
+                doc = None
 
         submit_button = st.form_submit_button(label="✨ Get me the data!")
 
@@ -243,5 +174,4 @@ df = df.format(format_dictionary)
 
 with c2:
     st.table(df)
-
 
