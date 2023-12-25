@@ -212,11 +212,11 @@ df = (
 top_keywords = df.head(10)["Keyword/Keyphrase"].tolist()
 wordcloud_text = ' '.join(top_keywords)
 
-wordcloud = WordCloud(width=800, height=400, background_color='white').generate(wordcloud_text)
+wordcloud = WordCloud(width=600, height=200, background_color='white').generate(wordcloud_text)
 
 # Display the word cloud
 st.markdown("## **🌟 Word Cloud of Top 10 Relevant Keywords**")
-fig, ax = plt.subplots(figsize=(10, 5))
+fig, ax = plt.subplots(figsize=(6, 5))
 ax.imshow(wordcloud, interpolation='bilinear')
 ax.axis('off')
 st.pyplot(fig)
