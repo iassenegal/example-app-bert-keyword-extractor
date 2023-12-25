@@ -51,8 +51,15 @@ with st.form(key="my_form"):
     # ... (Code for document form)
     # (The section for selecting model, setting parameters, and pasting text)
 
-    # Define domain-specific words (replace this with your actual domain-specific words)
-    domain_specific_words = ["domain_word_1", "domain_word_2", "domain_word_3", ...]
+    # Multiselect widget for domain-specific words
+    domain_specific_words = st.multiselect(
+        "Choose domain-specific words",
+        ["word_1", "word_2", "word_3", "word_4", "word_5"],  # Replace with your domain-specific words
+    )
+    StopWordsCheckbox = st.checkbox(
+        "Remove stop words",
+        help="Tick this box to remove stop words from the document (currently English only)",
+    )
 
     if StopWordsCheckbox:
         stop_words = set(nltk.corpus.stopwords.words('english'))
