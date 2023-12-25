@@ -205,7 +205,21 @@ df = (
     .sort_values(by="Relevancy", ascending=False)
     .reset_index(drop=True)
 )
+##############
+# Create a word cloud for the top 10 most relevant keywords
+top_keywords = df.head(10)["Keyword/Keyphrase"].tolist()
+wordcloud_text = ' '.join(top_keywords)
 
+wordcloud = WordCloud(width=800, height=400, background_color='white').generate(wordcloud_text)
+
+# Display the word cloud
+st.markdown("## **🌟 Word Cloud of Top 10 Relevant Keywords**")
+plt.figure(figsize=(10, 5))
+plt.imshow(wordcloud, interpolation='bilinear')
+plt.axis('off')
+st.pyplot()
+
+#################
 df.index += 1
 
 # Add styling
@@ -229,15 +243,4 @@ df = df.format(format_dictionary)
 with c2:
     st.table(df)
 
-# Create a word cloud for the top 10 most relevant keywords
-top_keywords = df.head(10)["Keyword/Keyphrase"].tolist()
-wordcloud_text = ' '.join(top_keywords)
 
-wordcloud = WordCloud(width=800, height=400, background_color='white').generate(wordcloud_text)
-
-# Display the word cloud
-st.markdown("## **🌟 Word Cloud of Top 10 Relevant Keywords**")
-plt.figure(figsize=(10, 5))
-plt.imshow(wordcloud, interpolation='bilinear')
-plt.axis('off')
-st.pyplot()
