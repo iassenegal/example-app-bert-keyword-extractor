@@ -36,7 +36,7 @@ c30, c31, c32 = st.columns([2.5, 1, 3])
 
 with c30:
     # st.image("logo.png", width=400)
-    st.title("🔑 BERT Keyword Extractor")
+    st.title("🔑 Institut des Algorithmes du Sénégal")
     st.header("")
 
 
