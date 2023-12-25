@@ -8,6 +8,7 @@ import seaborn as sns
 # For download buttons
 from functionforDownloadButtons import download_button
 import os
+import matplotlib.pyplot as plt
 import json
 from wordcloud import WordCloud
 import matplotlib.pyplot as plt
@@ -206,7 +207,8 @@ df = (
     .reset_index(drop=True)
 )
 ##############
-# Create a word cloud for the top 10 most relevant keywords
+
+# Assuming 'df' is your DataFrame containing keywords/keyphrases
 top_keywords = df.head(10)["Keyword/Keyphrase"].tolist()
 wordcloud_text = ' '.join(top_keywords)
 
@@ -214,11 +216,10 @@ wordcloud = WordCloud(width=800, height=400, background_color='white').generate(
 
 # Display the word cloud
 st.markdown("## **🌟 Word Cloud of Top 10 Relevant Keywords**")
-plt.figure(figsize=(10, 5))
-plt.imshow(wordcloud, interpolation='bilinear')
-plt.axis('off')
-st.pyplot()
-
+fig, ax = plt.subplots(figsize=(10, 5))
+ax.imshow(wordcloud, interpolation='bilinear')
+ax.axis('off')
+st.pyplot(fig)
 #################
 df.index += 1
 
